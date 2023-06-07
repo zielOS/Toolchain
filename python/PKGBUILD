@@ -15,7 +15,6 @@ pkgdesc="Next generation of the python high-level scripting language"
 arch=('x86_64')
 license=('custom')
 url="https://www.python.org/"
-options=('!lto') # uses internal LTO
 depends=('bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib')
 makedepends=('tk' 'sqlite' 'bluez-libs' 'mpdecimal' 'llvm' 'gdb' 'xorg-server-xvfb' 'ttf-font')
 source=("https://www.python.org/ftp/python/${pkgver%rc*}/Python-${pkgver}.tar.xz"{,.asc}
@@ -40,15 +39,13 @@ prepare() {
   rm -r Modules/expat
   rm -r Modules/_ctypes/{darwin,libffi}*
   rm -r Modules/_decimal/libmpdec
-  
- 
 }
 
 build() {
   cd Python-${pkgver}
 
-  export CFLAGS+=" -O3 -fno-semantic-interposition -ffat-lto-objects"
-  export CXXLAGS+=" -O3 -fno-semantic-interposition -ffat-lto-objects"
+  export CFLAGS+="-O3 -fno-semantic-interposition -ffat-lto-objects"
+  export CXXLAGS+="-O3 -fno-semantic-interposition -ffat-lto-objects"
 
   # Disable bundled pip & setuptools
   ./configure --prefix=/usr \
@@ -58,13 +55,14 @@ build() {
               --with-lto \
               --enable-ipv6 \
               --with-system-expat \
+              --enable-profiling \
               --with-dbmliborder=gdbm:ndbm \
               --with-system-libmpdec \
               --enable-loadable-sqlite-extensions \
               --without-ensurepip \
               --with-tzpath=/usr/share/zoneinfo \
-              --enable-profiling \
-              --with-builtin-hashlib-hashes=sha512
+              --with-hash-algorithm=siphash13 \
+              --with-builtin-hashlib-hashes=sha256
 
   # Obtain next free server number for xvfb-run; this even works in a chroot environment.
   export servernum=99
@@ -74,14 +72,12 @@ build() {
 }
 
 check() {
-  # test_socket: test.test_socket.RDSTest.testPeek hangs https://bugs.python.org/issue35247
   # test_tk: test_askcolor tkinter.test.test_tkinter.test_colorchooser.DefaultRootTest hangs
   # test_pyexpat: our `debug` implementation rewrites source location, which breaks the build-time
   #               only test test.test_pyexpat.HandlerExceptionTest as it cannot find source file in
   #               the to-be-installed debug package
 
   cd Python-${pkgver}
-
   # Obtain next free server number for xvfb-run; this even works in a chroot environment.
   export servernum=99
   while ! xvfb-run -a -n "$servernum" /bin/true 2>/dev/null; do servernum=$((servernum+1)); done

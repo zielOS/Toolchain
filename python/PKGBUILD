@@ -43,8 +43,6 @@ prepare() {
   rm -r Modules/_ctypes/{darwin,libffi}*
   rm -r Modules/_decimal/libmpdec
   
-  msg2 "Include --enable-bolt"
-  patch -Np1 -i "${srcdir}/bolt2.patch"
  
 }
 
@@ -60,7 +58,6 @@ build() {
               --with-computed-gotos \
               --enable-optimizations \
               --with-lto \
-              --enable-bolt \
               --enable-ipv6 \
               --with-system-expat \
               --with-dbmliborder=gdbm:ndbm \

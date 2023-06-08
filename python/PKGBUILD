@@ -58,8 +58,7 @@ build() {
               --enable-optimizations \
               --with-lto \
               --enable-ipv6 \
-              --with-system-expat \
-              --enable-profiling \
+              --with-system-expat \ 
               --with-dbmliborder=gdbm:ndbm \
               --with-system-libmpdec \
               --enable-loadable-sqlite-extensions \
